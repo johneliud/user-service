@@ -1,8 +1,11 @@
 package io.github.johneliud.user_service.controllers;
 
 import io.github.johneliud.user_service.dto.ApiResponse;
+import io.github.johneliud.user_service.dto.LoginRequest;
+import io.github.johneliud.user_service.dto.LoginResponse;
 import io.github.johneliud.user_service.dto.RegisterRequest;
 import io.github.johneliud.user_service.dto.UserResponse;
+import io.github.johneliud.user_service.services.AuthService;
 import io.github.johneliud.user_service.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class UserController {
     private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(
@@ -31,6 +35,16 @@ public class UserController {
         log.info("POST /api/users/register - User registered successfully: {}", userResponse.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new ApiResponse<>(true, "User registered successfully", userResponse));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        log.info("POST /api/users/login - Login request received for email: {}", request.getEmail());
+        
+        LoginResponse loginResponse = authService.login(request);
+        
+        log.info("POST /api/users/login - Login successful for user: {}", loginResponse.getUser().getId());
+        return ResponseEntity.ok(new ApiResponse<>(true, "Login successful", loginResponse));
     }
 
     @PutMapping("/profile/avatar")
