@@ -1,6 +1,7 @@
 package io.github.johneliud.user_service.services;
 
 import io.github.johneliud.user_service.dto.RegisterRequest;
+import io.github.johneliud.user_service.dto.UpdateProfileRequest;
 import io.github.johneliud.user_service.dto.UserResponse;
 import io.github.johneliud.user_service.models.Role;
 import io.github.johneliud.user_service.models.User;
@@ -47,13 +48,39 @@ public class UserService {
         User savedUser = userRepository.save(user);
         log.info("User registered successfully with ID: {} and role: {}", savedUser.getId(), savedUser.getRole());
 
-        return new UserResponse(
-            savedUser.getId(),
-            savedUser.getName(),
-            savedUser.getEmail(),
-            savedUser.getRole(),
-            savedUser.getAvatar()
-        );
+        return toUserResponse(savedUser);
+    }
+
+    public UserResponse getProfile(String userId) {
+        log.info("Fetching profile for user: {}", userId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("Profile fetch failed: User not found - {}", userId);
+                    return new IllegalArgumentException("User not found");
+                });
+        
+        log.info("Profile fetched successfully for user: {}", userId);
+        return toUserResponse(user);
+    }
+
+    public UserResponse updateProfile(String userId, UpdateProfileRequest request) {
+        log.info("Updating profile for user: {}", userId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("Profile update failed: User not found - {}", userId);
+                    return new IllegalArgumentException("User not found");
+                });
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            user.setName(request.getName());
+        }
+
+        User updatedUser = userRepository.save(user);
+        log.info("Profile updated successfully for user: {}", userId);
+        
+        return toUserResponse(updatedUser);
     }
 
     public UserResponse updateAvatar(String userId, MultipartFile avatar) {
@@ -79,12 +106,17 @@ public class UserService {
         User updatedUser = userRepository.save(user);
 
         log.info("Avatar updated successfully for user: {}", userId);
+        return toUserResponse(updatedUser);
+    }
+
+    private UserResponse toUserResponse(User user) {
         return new UserResponse(
-            updatedUser.getId(),
-            updatedUser.getName(),
-            updatedUser.getEmail(),
-            updatedUser.getRole(),
-            updatedUser.getAvatar()
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getAvatar()
         );
     }
 }
+

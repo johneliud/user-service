@@ -33,3 +33,10 @@ Microservice where users can register as clients or sellers, with sellers having
   - Password verification with BCrypt
   - Token includes user ID, email, and role
   - JSON response with token and user data
+
+- US-5: Profile Management
+  - GET /api/users/profile endpoint (authenticated)
+  - PUT /api/users/profile endpoint for updates
+  - JWT-based authentication required
+  - Users can only access their own profile
+  - Password never exposed in responses
