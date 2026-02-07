@@ -26,3 +26,10 @@ Microservice where users can register as clients or sellers, with sellers having
   - File size limit (2MB)
   - PUT /api/users/profile/avatar endpoint
   - Secure file storage with UUID naming
+
+- US-4: Authentication Implementation
+  - POST /api/users/login endpoint
+  - JWT token generation with user claims
+  - Password verification with BCrypt
+  - Token includes user ID, email, and role
+  - JSON response with token and user data
