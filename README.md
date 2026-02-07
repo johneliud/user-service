@@ -19,3 +19,10 @@ Microservice where users can register as clients or sellers, with sellers having
   - Duplicate email detection
   - JSON response format
   - Comprehensive logging
+
+- US-3: Avatar Upload for Sellers
+  - Avatar upload during registration (sellers only)
+  - File type validation (PNG, JPG, JPEG, WEBP)
+  - File size limit (2MB)
+  - PUT /api/users/profile/avatar endpoint
+  - Secure file storage with UUID naming
