@@ -19,6 +19,9 @@ import java.util.UUID;
 public class FileStorageService {
     private static final long MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("png", "jpg", "jpeg", "webp");
+    private static final List<String> ALLOWED_MIME_TYPES = Arrays.asList(
+        "image/png", "image/jpeg", "image/jpg", "image/webp"
+    );
     
     @Value("${file.upload.dir:uploads/avatars}")
     private String uploadDir;
@@ -34,6 +37,12 @@ public class FileStorageService {
         if (file.getSize() > MAX_FILE_SIZE) {
             log.warn("Avatar upload failed: File size {} exceeds 2MB limit", file.getSize());
             throw new IllegalArgumentException("File size exceeds 2MB limit");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
+            log.warn("Avatar upload failed: Invalid MIME type - {}", contentType);
+            throw new IllegalArgumentException("Only PNG, JPG, JPEG, and WEBP files are allowed");
         }
 
         String originalFilename = file.getOriginalFilename();
