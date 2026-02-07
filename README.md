@@ -10,3 +10,12 @@ Microservice where users can register as clients or sellers, with sellers having
   - Unique email index
   - Input validation constraints
   - UserRepository with email lookup methods
+
+- US-2: User Registration API
+  - POST /api/users/register endpoint
+  - Role selection support (CLIENT/SELLER)
+  - Password hashing with BCrypt
+  - Email format and password strength validation
+  - Duplicate email detection
+  - JSON response format
+  - Comprehensive logging
