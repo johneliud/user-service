@@ -92,11 +92,6 @@ public class UserService {
                 return new IllegalArgumentException("User not found");
             });
 
-        if (user.getRole() != Role.SELLER) {
-            log.warn("Avatar update failed: User is not a seller - {}", userId);
-            throw new IllegalArgumentException("Only sellers can upload avatars");
-        }
-
         if (user.getAvatar() != null) {
             fileStorageService.deleteAvatar(user.getAvatar());
         }
