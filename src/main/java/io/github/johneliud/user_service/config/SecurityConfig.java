@@ -54,7 +54,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .headers(headers -> headers
                 .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
-                .xssProtection(xss -> xss.headerValue("1; mode=block"))
+                .xssProtection(xss -> xss.disable())
                 .frameOptions(frame -> frame.deny())
             )
             .authorizeHttpRequests(auth -> auth
