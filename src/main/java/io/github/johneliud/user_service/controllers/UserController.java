@@ -1,5 +1,6 @@
 package io.github.johneliud.user_service.controllers;
 
+import io.github.johneliud.user_service.config.RateLimitService;
 import io.github.johneliud.user_service.dto.ApiResponse;
 import io.github.johneliud.user_service.dto.LoginRequest;
 import io.github.johneliud.user_service.dto.LoginResponse;
@@ -8,6 +9,7 @@ import io.github.johneliud.user_service.dto.UpdateProfileRequest;
 import io.github.johneliud.user_service.dto.UserResponse;
 import io.github.johneliud.user_service.services.AuthService;
 import io.github.johneliud.user_service.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
     private final UserService userService;
     private final AuthService authService;
+    private final RateLimitService rateLimitService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(
@@ -41,7 +44,19 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
+        
+        String clientIp = getClientIP(httpRequest);
+        String rateLimitKey = "login:" + clientIp;
+        
+        if (!rateLimitService.tryConsume(rateLimitKey)) {
+            log.warn("POST /api/users/login - Rate limit exceeded for IP: {}", clientIp);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(new ApiResponse<>(false, "Too many login attempts. Please try again later.", null));
+        }
+        
         log.info("POST /api/users/login - Login request received for email: {}", request.getEmail());
         
         LoginResponse loginResponse = authService.login(request);
@@ -88,5 +103,13 @@ public class UserController {
         
         log.info("PUT /api/users/profile/avatar - Avatar updated successfully for user: {}", userId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Avatar updated successfully", userResponse));
+    }
+
+    private String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
     }
 }
