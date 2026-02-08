@@ -1,8 +1,8 @@
 package io.github.johneliud.user_service.config;
 
-import io.bucket4j.Bandwidth;
-import io.bucket4j.Bucket;
-import io.bucket4j.Refill;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,13 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitService {
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
     
-    @Value("${rate.limit.login.capacity}")
+    @Value("${rate.limit.login.capacity:5}")
     private int capacity;
     
-    @Value("${rate.limit.login.refill.tokens}")
+    @Value("${rate.limit.login.refill.tokens:5}")
     private int refillTokens;
     
-    @Value("${rate.limit.login.refill.minutes}")
+    @Value("${rate.limit.login.refill.minutes:15}")
     private int refillMinutes;
 
     public Bucket resolveBucket(String key) {
