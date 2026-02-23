@@ -53,7 +53,7 @@ A Spring Boot microservice for user management with role-based authentication, s
 
 #### US-6: Role-Based Authorization
 - Method-level security with @PreAuthorize
-- ROLE_SELLER required for avatar uploads
+- SELLER required for avatar uploads
 - JWT filter extracts and sets user roles
 - Access denied handling with proper error responses
 

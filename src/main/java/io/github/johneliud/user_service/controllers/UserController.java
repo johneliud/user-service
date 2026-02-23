@@ -78,7 +78,7 @@ public class UserController {
             @RequestHeader("X-User-Role") String role,
             @RequestPart("avatar") MultipartFile avatar) {
         
-        if (!role.equals("ROLE_SELLER")) {
+        if (!role.equals("SELLER")) {
             throw new IllegalArgumentException("Only sellers can update avatar");
         }
         
