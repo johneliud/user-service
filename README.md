@@ -1,153 +1,193 @@
 # User Service
 
-A Spring Boot microservice for user management with role-based authentication, supporting client and seller registration with optional avatar uploads for sellers.
+Microservice responsible for user management, authentication, and profile operations.
 
-## Table of Contents
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [API Documentation](#api-documentation)
-- [Testing](#testing)
+## Overview
+
+- **Port**: 8080
+- **Technology**: Spring Boot 3.x
+- **Database**: MongoDB collection `users`
+- **Purpose**: User registration, authentication, and profile management
 
 ## Features
 
-### Completed Implementations
+### User Registration
+- Register as CLIENT or SELLER
+- Password encryption with BCrypt
+- Email validation
+- Avatar upload for sellers (optional)
 
-#### US-1: Database Schema Design & Implementation
-- User model with MongoDB document mapping
-- Role enum (CLIENT/SELLER)
-- Unique email index
-- Input validation constraints
-- UserRepository with email lookup methods
+### Authentication
+- JWT token generation
+- Password verification
+- Token expiration: 24 hours
 
-#### US-2: User Registration API
-- POST /api/users/register endpoint
-- Role selection support (CLIENT/SELLER)
-- Password hashing with BCrypt
-- Email format and password strength validation
-- Duplicate email detection
-- JSON response format
-- Comprehensive logging
+### Profile Management
+- View user profile
+- Update name and email
+- Upload/update avatar (sellers only)
+- Serve avatar images
 
-#### US-3: Avatar Upload for Sellers
-- Avatar upload during registration (sellers only)
-- File type validation (PNG, JPG, JPEG, WEBP)
-- MIME type verification
-- File size limit (2MB)
-- PUT /api/users/profile/avatar endpoint
-- Secure file storage with UUID naming
+### Avatar Management
+- Upload avatar images (PNG, JPG, JPEG, WEBP)
+- Max file size: 2MB
+- Stored in `uploads/avatars/`
+- Served via `/api/users/avatars/{filename}`
 
-#### US-4: Authentication Implementation
-- POST /api/users/login endpoint
-- JWT token generation with user claims
-- Password verification with BCrypt
-- Token includes user ID, email, and role
-- JSON response with token and user data
+## API Endpoints
 
-#### US-5: Profile Management
-- GET /api/users/profile endpoint (authenticated)
-- PUT /api/users/profile endpoint for updates
-- JWT-based authentication required
-- Users can only access their own profile
-- Password never exposed in responses
+### Public Endpoints
 
-#### US-6: Role-Based Authorization
-- Method-level security with @PreAuthorize
-- SELLER required for avatar uploads
-- JWT filter extracts and sets user roles
-- Access denied handling with proper error responses
+#### Register User
+```http
+POST /api/users/register
+Content-Type: multipart/form-data
 
-#### US-7: Security Measures
-- Rate limiting with Bucket4j (5 login attempts per 15 minutes per IP)
-- Password complexity validation (uppercase, lowercase, digit, special character)
-- CORS configuration for frontend origins
-- Security headers (CSP, Frame Options)
-
-#### US-8: Error Handling & Validation
-- Global exception handler
-- Comprehensive input validation for all endpoints
-- Consistent error response format
-- Edge case handling (invalid credentials, rate limits, etc.)
-
-#### US-9: Unit & Integration Testing
-- Unit tests for service layer
-- Authentication flow tests
-- Password hashing validation tests
-
-## Tech Stack
-
-- **Java 25**
-- **Spring Boot 4.0.2**
-- **MongoDB** - Database
-- **Spring Security** - Authentication & Authorization
-- **JWT (JJWT 0.12.5)** - Token-based authentication
-- **Bucket4j 8.10.1** - Rate limiting
-- **Lombok** - Boilerplate reduction
-- **Maven** - Build tool
-
-## Getting Started
-
-### Prerequisites
-
-- Java 25 or higher
-- Maven 3.6+
-- MongoDB Atlas account or local MongoDB instance
-
-### Clone Repository
-
-```bash
-git clone https://github.com/johneliud/user-service.git
-cd user-service
+user: {
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "SELLER"
+}
+avatar: <file> (optional, sellers only)
 ```
 
-### Configuration
+#### Login
+```http
+POST /api/users/login
+Content-Type: application/json
 
-Create and Update `src/main/resources/application-secrets.properties`:
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
 
+Response:
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGc...",
+    "user": {
+      "id": "...",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": "SELLER",
+      "avatar": "filename.png"
+    }
+  }
+}
+```
+
+### Protected Endpoints
+
+Require `Authorization: Bearer <token>` header and X-User-Id header (added by gateway).
+
+#### Get Profile
+```http
+GET /api/users/profile
+```
+
+#### Update Profile
+```http
+PUT /api/users/profile
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "email": "john.new@example.com"
+}
+```
+
+#### Update Avatar (Sellers Only)
+```http
+PUT /api/users/profile/avatar
+Content-Type: multipart/form-data
+
+avatar: <file>
+```
+
+#### Get Avatar Image
+```http
+GET /api/users/avatars/{filename}
+```
+
+Returns image with appropriate Content-Type.
+
+## Data Model
+
+### User
+```json
+{
+  "id": "string",
+  "name": "string",
+  "email": "string",
+  "password": "string (BCrypt hashed)",
+  "role": "CLIENT | SELLER",
+  "avatar": "string (filename, optional)"
+}
+```
+
+## Configuration
+
+### Application Properties
 ```properties
-spring.mongodb.uri=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>
-# Server Configuration
 server.port=8080
-# JWT Configuration
-jwt.secret=<your-secret-key>
+spring.data.mongodb.uri=mongodb://localhost:27017/buy01
+jwt.secret=your-secret-key
 jwt.expiration=86400000
-# Rate limiting configuration
-rate.limit.login.capacity=5
-rate.limit.login.refill.tokens=5
-rate.limit.login.refill.minutes=15
-# File upload configuration
 spring.servlet.multipart.max-file-size=2MB
-spring.servlet.multipart.max-request-size=2MB
-file.upload.dir=uploads/avatars
 ```
 
-### Build & Run
+## Running the Service
 
 ```bash
-# Build
-./mvnw clean install
-
-# Run
-./mvnw spring-boot:run
+cd backend/user-service
+mvn spring-boot:run
 ```
 
-The service will start on `http://localhost:8080`
+Ensure MongoDB is running on port 27017.
 
-### Run Tests
+## File Storage
 
-```bash
-./mvnw test
+Avatars are stored in:
+```
+backend/user-service/uploads/avatars/
 ```
 
-## API Documentation
+Files are named with UUID: `{uuid}.{extension}`
 
-See [API_TESTING.md](docs/API_TESTING.md) for detailed endpoint documentation with Postman/Insomnia examples.
+## Security
 
-## Testing
+- Passwords hashed with BCrypt (strength 10)
+- JWT tokens signed with secret key
+- Avatar upload restricted to sellers
+- File type validation (images only)
+- File size validation (max 2MB)
 
-The project includes:
-- Unit tests for service layer
-- Authentication and authorization tests
-- Password validation tests
+## Dependencies
 
-Run tests with: `./mvnw test`
+- Spring Boot 3.x
+- Spring Data MongoDB
+- Spring Security
+- JWT (io.jsonwebtoken)
+- BCrypt
+- Lombok
+
+## Error Responses
+
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "data": null
+}
+```
+
+Common errors:
+- 400 - Invalid request data
+- 401 - Invalid credentials
+- 403 - Insufficient permissions
+- 404 - User not found
