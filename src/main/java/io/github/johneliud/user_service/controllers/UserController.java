@@ -66,6 +66,16 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Profile retrieved successfully", userResponse));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String id) {
+        log.info("GET /api/users/{} - Get user by ID request", id);
+        
+        UserResponse userResponse = userService.getProfile(id);
+        
+        log.info("GET /api/users/{} - User retrieved successfully", id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "User retrieved successfully", userResponse));
+    }
+
     @PutMapping("/profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             @RequestHeader("X-User-Id") String userId,
