@@ -11,10 +11,17 @@ import io.github.johneliud.user_service.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/api/users")
@@ -88,5 +95,37 @@ public class UserController {
         
         log.info("PUT /api/users/profile/avatar - Avatar updated successfully for user: {}", userId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Avatar updated successfully", userResponse));
+    }
+
+    @GetMapping("/avatars/{filename}")
+    public ResponseEntity<Resource> getAvatar(@PathVariable String filename) {
+        try {
+            Path filePath = Paths.get("uploads/avatars").resolve(filename).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            
+            if (!resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            String contentType = determineContentType(filename);
+            
+            return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CACHE_CONTROL, "max-age=31536000")
+                .body(resource);
+        } catch (Exception e) {
+            log.error("Error retrieving avatar: {}", filename, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    private String determineContentType(String filename) {
+        String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        return switch (extension) {
+            case "png" -> "image/png";
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "webp" -> "image/webp";
+            default -> "application/octet-stream";
+        };
     }
 }
