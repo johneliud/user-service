@@ -1,0 +1,76 @@
+pipeline {
+    agent { label 'backend' }
+
+    options {
+        // Keeps the build history clean and avoids filling up disk space
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    environment {
+        SERVICE_NAME = 'user-service'
+    }
+
+    stages {
+        stage('Initialize') {
+            steps {
+                echo "Starting build for ${env.SERVICE_NAME}..."
+                sh 'mvn -version'
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Compiling ${env.SERVICE_NAME}..."
+                // -B runs in non-interactive (batch) mode
+                sh 'mvn -B clean compile -DskipTests'
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                echo "Running JUnit tests for ${env.SERVICE_NAME}..."
+                sh 'mvn -B test'
+            }
+            post {
+                always {
+                    // Captures test results for the Jenkins UI
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                echo "Packaging ${env.SERVICE_NAME} into a JAR..."
+                sh 'mvn -B package -DskipTests'
+            }
+            post {
+                success {
+                    // Saves the built JAR file so you can download it from Jenkins
+                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "SUCCESS: ${env.SERVICE_NAME} build and tests passed."
+        }
+        failure {
+            echo "FAILURE: ${env.SERVICE_NAME} build or tests failed. Check logs and JUnit reports."
+        }
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs()
+        }
+    }
+}
