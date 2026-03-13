@@ -42,7 +42,7 @@ pipeline {
             post {
                 always {
                     // Captures test results for the Jenkins UI
-                    junit '**/target/surefire-reports/*.xml'
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                 }
             }
         }
