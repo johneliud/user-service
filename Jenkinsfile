@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'backend' }
+    agent any
 
     options {
         // Keeps the build history clean and avoids filling up disk space
