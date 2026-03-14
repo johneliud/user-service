@@ -1,13 +1,5 @@
 pipeline {
     agent { label 'backend' }
-    
-    stages {
-        stage('Initialize') {
-            steps {
-                sh 'java --version'
-            }
-        }
-    }
 
     options {
         // Keeps the build history clean and avoids filling up disk space
