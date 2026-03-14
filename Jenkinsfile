@@ -1,9 +1,17 @@
 pipeline {
-    agent any
+    agent { label 'backend' }
+    
+    stages {
+        stage('Initialize') {
+            steps {
+                sh 'java --version'
+            }
+        }
+    }
 
     options {
         // Keeps the build history clean and avoids filling up disk space
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+        buildDiscarder(logRotator(numToKeepStr: '3'))
         disableConcurrentBuilds()
         timestamps()
     }
