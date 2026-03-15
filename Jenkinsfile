@@ -37,7 +37,12 @@ pipeline {
         stage('Unit Test') {
             steps {
                 echo "Running JUnit tests for ${env.SERVICE_NAME}..."
-                sh 'mvn -B test'
+                withCredentials([
+                    string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
+                    string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI')
+                ]) {
+                    sh 'mvn -B test -Djwt.secret="$JWT_SECRET" -Dspring.mongodb.uri="$MONGODB_URI"'
+                }
             }
             post {
                 always {
