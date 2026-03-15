@@ -41,7 +41,7 @@ pipeline {
                     string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
                     string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI')
                 ]) {
-                    sh 'mvn -B test -Djwt.secret="$JWT_SECRET" -Dspring.mongodb.uri="$MONGODB_URI"'
+                    sh 'mvn -B test -Djwt.secret="$JWT_SECRET" -Djwt.expiration=86400000 -Dspring.mongodb.uri="$MONGODB_URI"'
                 }
             }
             post {
