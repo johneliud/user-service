@@ -8,6 +8,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Document(collection = "users")
@@ -27,8 +30,14 @@ public class User {
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
-    
+
     private Role role;
-    
+
     private String avatar;
+
+    private BigDecimal totalSpent = BigDecimal.ZERO;
+
+    private BigDecimal totalRevenue = BigDecimal.ZERO;
+
+    private List<ProductStat> productStats = new ArrayList<>();
 }
