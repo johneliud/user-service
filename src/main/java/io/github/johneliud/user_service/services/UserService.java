@@ -1,8 +1,7 @@
 package io.github.johneliud.user_service.services;
 
-import io.github.johneliud.user_service.dto.RegisterRequest;
-import io.github.johneliud.user_service.dto.UpdateProfileRequest;
-import io.github.johneliud.user_service.dto.UserResponse;
+import io.github.johneliud.user_service.dto.*;
+import io.github.johneliud.user_service.models.ProductStat;
 import io.github.johneliud.user_service.models.Role;
 import io.github.johneliud.user_service.models.User;
 import io.github.johneliud.user_service.repositories.UserRepository;
@@ -11,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -102,6 +104,26 @@ public class UserService {
 
         log.info("Avatar updated successfully for user: {}", userId);
         return toUserResponse(updatedUser);
+    }
+
+    public UserStatsResponse getUserStats(String userId) {
+        log.info("Fetching buyer stats for user: {}", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        List<ProductStat> top = user.getProductStats().stream()
+                .sorted(Comparator.comparingInt(ProductStat::getTotalQuantity).reversed())
+                .toList();
+        return new UserStatsResponse(user.getTotalSpent(), top);
+    }
+
+    public SellerStatsResponse getSellerStats(String userId) {
+        log.info("Fetching seller stats for user: {}", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        List<ProductStat> top = user.getProductStats().stream()
+                .sorted(Comparator.comparing(ProductStat::getTotalAmount).reversed())
+                .toList();
+        return new SellerStatsResponse(user.getTotalRevenue(), top);
     }
 
     private UserResponse toUserResponse(User user) {
