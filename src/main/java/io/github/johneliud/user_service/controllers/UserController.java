@@ -1,11 +1,8 @@
 package io.github.johneliud.user_service.controllers;
 
-import io.github.johneliud.user_service.dto.ApiResponse;
-import io.github.johneliud.user_service.dto.LoginRequest;
-import io.github.johneliud.user_service.dto.LoginResponse;
-import io.github.johneliud.user_service.dto.RegisterRequest;
-import io.github.johneliud.user_service.dto.UpdateProfileRequest;
-import io.github.johneliud.user_service.dto.UserResponse;
+import io.github.johneliud.user_service.dto.*;
+import io.github.johneliud.user_service.exception.ForbiddenException;
+import io.github.johneliud.user_service.exception.UnauthorizedException;
 import io.github.johneliud.user_service.services.AuthService;
 import io.github.johneliud.user_service.services.UserService;
 import jakarta.validation.Valid;
@@ -105,6 +102,26 @@ public class UserController {
         
         log.info("PUT /api/users/profile/avatar - Avatar updated successfully for user: {}", userId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Avatar updated successfully", userResponse));
+    }
+
+    @GetMapping("/profile/stats")
+    public ResponseEntity<ApiResponse<UserStatsResponse>> getMyStats(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role) {
+        if (userId == null || role == null) throw new UnauthorizedException("Authentication required");
+        if (!"CLIENT".equals(role)) throw new ForbiddenException("Access denied");
+        log.info("GET /api/users/profile/stats - request for user: {}", userId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Stats retrieved successfully", userService.getUserStats(userId)));
+    }
+
+    @GetMapping("/profile/seller-stats")
+    public ResponseEntity<ApiResponse<SellerStatsResponse>> getMySellerStats(
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Role", required = false) String role) {
+        if (userId == null || role == null) throw new UnauthorizedException("Authentication required");
+        if (!"SELLER".equals(role)) throw new ForbiddenException("Access denied");
+        log.info("GET /api/users/profile/seller-stats - request for user: {}", userId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Seller stats retrieved successfully", userService.getSellerStats(userId)));
     }
 
     @GetMapping("/avatars/{filename}")
