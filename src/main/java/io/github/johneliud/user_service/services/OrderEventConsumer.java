@@ -37,4 +37,32 @@ public class OrderEventConsumer {
             log.info("Updated seller stats for sellerId={}", event.getSellerId());
         });
     }
+
+    private void mergeStats(User user, List<OrderItemEvent> items, BigDecimal total, boolean isSeller) {
+        if (isSeller) {
+            user.setTotalRevenue(user.getTotalRevenue().add(total));
+        } else {
+            user.setTotalSpent(user.getTotalSpent().add(total));
+        }
+
+        if (user.getProductStats() == null) {
+            user.setProductStats(new ArrayList<>());
+        }
+
+        for (OrderItemEvent item : items) {
+            BigDecimal lineTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+            user.getProductStats().stream()
+                    .filter(s -> s.getProductId().equals(item.getProductId()))
+                    .findFirst()
+                    .ifPresentOrElse(
+                            s -> {
+                                s.setTotalQuantity(s.getTotalQuantity() + item.getQuantity());
+                                s.setTotalAmount(s.getTotalAmount().add(lineTotal));
+                            },
+                            () -> user.getProductStats().add(
+                                    new ProductStat(item.getProductId(), item.getProductName(),
+                                            item.getQuantity(), lineTotal))
+                    );
+        }
+    }
 }
