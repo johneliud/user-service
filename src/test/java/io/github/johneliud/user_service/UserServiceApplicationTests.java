@@ -9,7 +9,10 @@ import org.springframework.test.context.TestPropertySource;
     "spring.mongodb.uri=mongodb://localhost:27017/test",
     "jwt.secret=testSecretKeyForTestingPurposeOnly123456",
     "jwt.expiration=86400000",
-    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration,org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration"
+    "spring.kafka.bootstrap-servers=localhost:9092",
+    "spring.kafka.consumer.group-id=user-service",
+    "spring.kafka.listener.auto-startup=false",
+    "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration,org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration,org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
 })
 class UserServiceApplicationTests {
 
