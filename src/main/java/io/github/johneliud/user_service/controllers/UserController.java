@@ -127,9 +127,15 @@ public class UserController {
     @GetMapping("/avatars/{filename}")
     public ResponseEntity<Resource> getAvatar(@PathVariable String filename) {
         try {
-            Path filePath = Paths.get("uploads/avatars").resolve(filename).normalize();
+            Path uploadPath = Paths.get("uploads/avatars").toAbsolutePath().normalize();
+            Path filePath = uploadPath.resolve(filename).normalize();
+
+            if (!filePath.startsWith(uploadPath)) {
+                return ResponseEntity.badRequest().build();
+            }
+
             Resource resource = new UrlResource(filePath.toUri());
-            
+
             if (!resource.exists()) {
                 return ResponseEntity.notFound().build();
             }
