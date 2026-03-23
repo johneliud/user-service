@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,8 +21,17 @@ import java.util.List;
 public class OrderEventConsumer {
 
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "order-placed", groupId = "${spring.kafka.consumer.group-id}")
+    public void handleOrderPlacedMessage(String message) {
+        try {
+            handleOrderPlaced(objectMapper.readValue(message, OrderPlacedEvent.class));
+        } catch (Exception e) {
+            log.error("Failed to deserialize order-placed event: {}", e.getMessage());
+        }
+    }
+
     public void handleOrderPlaced(OrderPlacedEvent event) {
         log.info("Received order-placed event: orderId={}", event.getOrderId());
 
