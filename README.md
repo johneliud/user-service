@@ -5,8 +5,8 @@ Microservice responsible for user management, authentication, and profile operat
 ## Overview
 
 - **Port**: 8080
-- **Technology**: Spring Boot 3.x
-- **Database**: MongoDB collection `users`
+- **Technology**: Spring Boot 4.0.3
+- **Database**: MongoDB Atlas (collection `users`)
 - **Purpose**: User registration, authentication, and profile management
 
 ## Features
@@ -27,6 +27,12 @@ Microservice responsible for user management, authentication, and profile operat
 - Update name and email
 - Upload/update avatar (sellers only)
 - Serve avatar images
+- Buyer analytics: total spent, top purchased products
+- Seller analytics: total revenue, best-selling products
+
+### Analytics (via Kafka)
+- Consumes `order-placed` events to update buyer spending and seller revenue
+- Consumes `order-status-changed` events for analytics updates
 
 ### Avatar Management
 - Upload avatar images (PNG, JPG, JPEG, WEBP)
@@ -116,6 +122,20 @@ GET /api/users/avatars/{filename}
 
 Returns image with appropriate Content-Type.
 
+#### Get Buyer Analytics
+```http
+GET /api/users/profile/stats
+```
+
+Returns total spent and top purchased products.
+
+#### Get Seller Analytics
+```http
+GET /api/users/profile/seller-stats
+```
+
+Returns total revenue and best-selling products.
+
 ## Data Model
 
 ### User
@@ -169,11 +189,12 @@ Files are named with UUID: `{uuid}.{extension}`
 
 ## Dependencies
 
-- Spring Boot 3.x
+- Spring Boot 4.0.3
 - Spring Data MongoDB
 - Spring Security
-- JWT (io.jsonwebtoken)
+- JWT (io.jsonwebtoken / jjwt)
 - BCrypt
+- Spring Kafka
 - Lombok
 
 ## Error Responses
