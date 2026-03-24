@@ -39,9 +39,9 @@ pipeline {
                 echo "Running JUnit tests for ${env.SERVICE_NAME}..."
                 withCredentials([
                     string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
-                    string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI')
+                    string(credentialsId: 'mongodb-uri', variable: 'MONGO_URI')
                 ]) {
-                    sh 'mvn -B test -Djwt.secret="$JWT_SECRET" -Djwt.expiration=86400000 -Dspring.data.mongodb.uri="$MONGODB_URI"'
+                    sh 'mvn -B test -Djwt.secret="$JWT_SECRET" -Djwt.expiration=86400000 -Dspring.data.mongodb.uri="$MONGO_URI"'
                 }
             }
             post {
@@ -68,18 +68,18 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "Deploying ${env.SERVICE_NAME} to Render..."
-                // withCredentials([string(credentialsId: 'render-deploy-hook-user-service', variable: 'RENDER_DEPLOY_HOOK')]) {
-                //     sh 'curl -X POST "$RENDER_DEPLOY_HOOK"'
-                // }
+                 withCredentials([string(credentialsId: 'render-deploy-hook-user-service', variable: 'RENDER_DEPLOY_HOOK')]) {
+                     sh 'curl -X POST "$RENDER_DEPLOY_HOOK"'
+                 }
             }
             post {
                 failure {
                     echo "Deployment failed for ${env.SERVICE_NAME}. Rolling back..."
-                    // withCredentials([string(credentialsId: 'render-deploy-hook-user-service', variable: 'RENDER_DEPLOY_HOOK')]) {
+                     withCredentials([string(credentialsId: 'render-deploy-hook-user-service', variable: 'RENDER_DEPLOY_HOOK')]) {
                     // Triggers a redeploy of the last pushed commit on the connected branch
                     // For version-specific rollback, use the Render dashboard: Dashboard > Service > Deploys > Redeploy
-                    //     sh 'curl -X POST "$RENDER_DEPLOY_HOOK"'
-                    // }
+                         sh 'curl -X POST "$RENDER_DEPLOY_HOOK"'
+                     }
                 }
             }
         }
