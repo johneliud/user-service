@@ -155,7 +155,7 @@ Returns total revenue and best-selling products.
 ### Application Properties
 ```properties
 server.port=8080
-spring.data.mongodb.uri=mongodb://localhost:27017/buy01
+spring.mongodb.uri=mongodb://localhost:27017/buy01
 jwt.secret=your-secret-key
 jwt.expiration=86400000
 spring.servlet.multipart.max-file-size=2MB
